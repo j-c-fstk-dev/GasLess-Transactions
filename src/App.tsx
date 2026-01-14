@@ -11,12 +11,9 @@ function AppContent() {
   const [onboardingStep, setOnboardingStep] = useState<'intro' | 'auth' | 'creating' | 'success' | 'dashboard'>('intro');
 
   useEffect(() => {
-    if (!isConnected) {
+    if (!isConnected && onboardingStep !== 'intro') {
       setIsTransactionMode(false);
       setOnboardingStep('intro');
-    } else if (isConnected && onboardingStep !== 'dashboard') {
-      // Transição automática para dashboard quando conectado
-      setTimeout(() => setOnboardingStep('dashboard'), 500);
     }
   }, [isConnected, onboardingStep]);
 
