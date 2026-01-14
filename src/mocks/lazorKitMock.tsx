@@ -8,6 +8,7 @@ export const LazorkitProvider = ({ children }: { children: React.ReactNode }) =>
 export const useWallet = () => ({
   connect: async ({ feeMode }: { feeMode?: string } = {}) => {
     console.log('✅ Mock: Passkey auth success');
+    void feeMode; // Mark as used to satisfy TypeScript
     return { smartWallet: '9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM' };
   },
   disconnect: () => console.log('Mock: Disconnected'),
@@ -16,6 +17,7 @@ export const useWallet = () => ({
   wallet: { smartWallet: '9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM' },
   signAndSendTransaction: async (tx: any) => {
     console.log('✅ Mock: Gasless USDC tx success');
+    void tx; // Mark as used to satisfy TypeScript
     return '5xK...abc123'; // Mock signature
   }
 });
