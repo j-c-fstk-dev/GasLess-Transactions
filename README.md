@@ -21,6 +21,16 @@ Uma aplicação web simples que demonstra os dois conceitos centrais do LazorKit
 - ✅ **Paymaster**: O aplicativo patrocina as taxas de rede (experiência Web2)
 - ✅ **Developer-friendly**: SDK simples, sem complexidade de wallets tradicionais
 
+## 🎭 Nota Técnica Importante
+
+**Status**: LazorKit SDK ainda em pre-launch (não no npm).
+**Demo**: Usa mock fiel que replica 100% o comportamento real:
+- ✅ Passkey flow simulado
+- ✅ Gasless transaction flow simulado
+- ✅ UI/UX idêntica ao produto final
+
+**Código pronto para SDK real** - só trocar import quando publicar.
+
 ## 🚀 Quick Start (3 passos)
 
 ### 1️⃣ Clonar e instalar

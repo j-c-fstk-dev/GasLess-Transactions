@@ -6,21 +6,16 @@ import React from 'react';
 export const LazorkitProvider = ({ children }: { children: React.ReactNode }) => <div>{children}</div>;
 
 export const useWallet = () => ({
-  connect: async ({ feeMode }: { feeMode: string }) => {
-    console.log('Mock: Connecting with feeMode:', feeMode);
-    // Simulate delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
+  connect: async ({ feeMode }: { feeMode?: string } = {}) => {
+    console.log('✅ Mock: Passkey auth success');
+    return { smartWallet: '9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM' };
   },
-  disconnect: async () => {
-    console.log('Mock: Disconnecting');
-  },
-  isConnected: false, // Change to true to test connected state
+  disconnect: () => console.log('Mock: Disconnected'),
+  isConnected: true,
   isConnecting: false,
-  wallet: { smartWallet: 'MockSmartWalletAddress123456789' },
+  wallet: { smartWallet: '9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM' },
   signAndSendTransaction: async (tx: any) => {
-    console.log('Mock: Signing and sending transaction:', tx);
-    // Simulate delay
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    return 'MockTransactionSignature123456789';
-  },
+    console.log('✅ Mock: Gasless USDC tx success');
+    return '5xK...abc123'; // Mock signature
+  }
 });
