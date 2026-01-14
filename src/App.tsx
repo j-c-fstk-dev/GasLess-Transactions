@@ -82,18 +82,66 @@ function AppContent() {
                   {/* === STATS CARDS === */}
                   <div className="grid md:grid-cols-3 gap-6 pt-4">
                     <div className="bg-gray-800/50 p-6 rounded-2xl text-center">
-                      <div className="text-3xl font-bold text-purple-400 mb-2">0.00</div>
-                      <div className="text-sm text-purple-300">USDC</div>
+                      <div className="text-3xl font-bold text-purple-400 mb-2">
+                        ${wallet?.balance?.usdc || '0.00'}
+                      </div>
+                      <div className="text-sm text-purple-300">USDC Balance</div>
                     </div>
                     <div className="bg-gray-800/50 p-6 rounded-2xl text-center">
-                      <div className="text-3xl font-bold text-green-400 mb-2">0</div>
-                      <div className="text-sm text-green-300">Txs</div>
+                      <div className="text-3xl font-bold text-green-400 mb-2">
+                        {wallet?.transactions?.length || 0}
+                      </div>
+                      <div className="text-sm text-green-300">Transactions</div>
                     </div>
                     <div className="bg-gray-800/50 p-6 rounded-2xl text-center">
                       <div className="text-3xl font-bold text-blue-400 mb-2">Devnet</div>
                       <div className="text-sm text-blue-300">Network</div>
                     </div>
                   </div>
+
+                  {/* === TRANSACTION HISTORY === */}
+                  {wallet?.transactions && wallet.transactions.length > 0 && (
+                    <div className="mt-8">
+                      <h3 className="text-xl font-bold text-white mb-4">Recent Transactions</h3>
+                      <div className="space-y-3">
+                        {wallet.transactions.slice(0, 3).map((tx) => (
+                          <div key={tx.id} className="bg-gray-800/50 p-4 rounded-xl">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-3">
+                                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                                  tx.type === 'send' ? 'bg-red-500/20' : 'bg-green-500/20'
+                                }`}>
+                                  <span className={`text-lg ${
+                                    tx.type === 'send' ? 'text-red-400' : 'text-green-400'
+                                  }`}>
+                                    {tx.type === 'send' ? '📤' : '📥'}
+                                  </span>
+                                </div>
+                                <div>
+                                  <div className="text-white font-medium">
+                                    {tx.type === 'send' ? 'Sent' : 'Received'} USDC
+                                  </div>
+                                  <div className="text-gray-400 text-sm">
+                                    {new Date(tx.timestamp).toLocaleDateString()}
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <div className={`font-bold ${
+                                  tx.type === 'send' ? 'text-red-400' : 'text-green-400'
+                                }`}>
+                                  {tx.type === 'send' ? '-' : '+'}${tx.amount}
+                                </div>
+                                <div className="text-xs text-gray-400 flex items-center gap-1">
+                                  ⚡ Gasless
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </>
             )}

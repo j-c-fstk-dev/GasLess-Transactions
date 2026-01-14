@@ -1,14 +1,56 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 
 // Mock implementation for LazorKit SDK since package is not published yet
 // Uses REAL WebAuthn biometry for authentic demo
+
+// Mock transaction data
+const generateMockTransactions = (walletAddress: string) => [
+  {
+    id: 'tx_001',
+    hash: '5xKqXiGaslessTx_' + Date.now() + '_demo_001',
+    type: 'send',
+    amount: '25.50',
+    token: 'USDC',
+    to: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+    timestamp: Date.now() - 86400000, // 1 day ago
+    status: 'confirmed',
+    gasless: true
+  },
+  {
+    id: 'tx_002',
+    hash: '5xKqXiGaslessTx_' + Date.now() + '_demo_002',
+    type: 'receive',
+    amount: '100.00',
+    token: 'USDC',
+    from: 'So11111111111111111111111111111111111111112',
+    timestamp: Date.now() - 172800000, // 2 days ago
+    status: 'confirmed',
+    gasless: true
+  },
+  {
+    id: 'tx_003',
+    hash: '5xKqXiGaslessTx_' + Date.now() + '_demo_003',
+    type: 'send',
+    amount: '15.25',
+    token: 'USDC',
+    to: '9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM',
+    timestamp: Date.now() - 259200000, // 3 days ago
+    status: 'confirmed',
+    gasless: true
+  }
+];
 
 export const LazorkitProvider = ({ children }: { children: React.ReactNode }) => <div>{children}</div>;
 
 export const useWallet = () => {
   const [isConnected, setIsConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
-  const [wallet, setWallet] = useState<{ smartWallet: string; credentialId?: string } | null>(null);
+  const [wallet, setWallet] = useState<{
+    smartWallet: string;
+    credentialId?: string;
+    balance: { usdc: string; usd: string };
+    transactions: any[];
+  } | null>(null);
 
   return {
     connect: async ({ feeMode }: { feeMode?: string } = {}) => {
@@ -44,10 +86,16 @@ export const useWallet = () => {
 
         console.log('✅ BIOMETRIA CONFIRMADA! Credencial criada:', credential);
 
-        // Simulate smart wallet creation
+        // Simulate smart wallet creation with balance and transactions
+        const walletAddress = '9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM';
         const mockWallet = {
-          smartWallet: '9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM',
-          credentialId: credential?.id
+          smartWallet: walletAddress,
+          credentialId: credential?.id,
+          balance: {
+            usdc: '150.75',
+            usd: '150.75'
+          },
+          transactions: generateMockTransactions(walletAddress)
         };
 
         setWallet(mockWallet);
@@ -74,7 +122,7 @@ export const useWallet = () => {
     isConnected,
     isConnecting,
     wallet,
-    signAndSendTransaction: async (tx: any) => {
+    signAndSendTransaction: useCallback(async (tx: any) => {
       console.log('🔐 Solicitando segunda autenticação biométrica...');
       void tx; // Mark as used
 
@@ -95,15 +143,43 @@ export const useWallet = () => {
 
         console.log('✅ Assinatura biométrica confirmada!');
 
-        // Simulate gasless transaction
+        // Simulate gasless transaction with balance update
         await new Promise(resolve => setTimeout(resolve, 1500));
 
-        return '5xKqXiGaslessTx_' + Date.now() + '_WebAuthn';
+        const txHash = '5xKqXiGaslessTx_' + Date.now() + '_WebAuthn';
+
+        // Update wallet with new transaction and reduced balance
+        if (wallet) {
+          const amount = 25.50; // Mock amount being sent
+          const newBalance = parseFloat(wallet.balance.usdc) - amount;
+          const newTransaction = {
+            id: `tx_${Date.now()}`,
+            hash: txHash,
+            type: 'send',
+            amount: amount.toString(),
+            token: 'USDC',
+            to: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', // Mock recipient
+            timestamp: Date.now(),
+            status: 'confirmed',
+            gasless: true
+          };
+
+          setWallet({
+            ...wallet,
+            balance: {
+              usdc: newBalance.toFixed(2),
+              usd: newBalance.toFixed(2)
+            },
+            transactions: [newTransaction, ...wallet.transactions]
+          });
+        }
+
+        return txHash;
 
       } catch (error: any) {
         console.error('❌ Assinatura biométrica falhou:', error.name);
         throw new Error('Assinatura biométrica cancelada');
       }
-    }
+    }, [wallet])
   };
 };
