@@ -65,7 +65,8 @@ function AppContent() {
                 </p>
               </div>
             ) : (
-              <div className="bg-gray-800/50 p-10 rounded-3xl text-center">
+              <>
+                <div className="bg-gray-800/50 p-10 rounded-3xl text-center">
                 <div className="w-24 h-24 bg-green-500 rounded-3xl mx-auto mb-8 flex items-center justify-center">
                   <span className="text-4xl">✅</span>
                 </div>
@@ -78,24 +79,24 @@ function AppContent() {
                     🔐 WebAuthn • Devnet
                   </div>
                 </div>
-              </div>
+                  {/* === STATS CARDS === */}
+                  <div className="grid md:grid-cols-3 gap-6 pt-4">
+                    <div className="bg-gray-800/50 p-6 rounded-2xl text-center">
+                      <div className="text-3xl font-bold text-purple-400 mb-2">0.00</div>
+                      <div className="text-sm text-purple-300">USDC</div>
+                    </div>
+                    <div className="bg-gray-800/50 p-6 rounded-2xl text-center">
+                      <div className="text-3xl font-bold text-green-400 mb-2">0</div>
+                      <div className="text-sm text-green-300">Txs</div>
+                    </div>
+                    <div className="bg-gray-800/50 p-6 rounded-2xl text-center">
+                      <div className="text-3xl font-bold text-blue-400 mb-2">Devnet</div>
+                      <div className="text-sm text-blue-300">Network</div>
+                    </div>
+                  </div>
+                </div>
+              </>
             )}
-
-            {/* === STATS CARDS === */}
-            <div className="grid md:grid-cols-3 gap-6 pt-4">
-              <div className="bg-gray-800/50 p-6 rounded-2xl text-center">
-                <div className="text-3xl font-bold text-purple-400 mb-2">0.00</div>
-                <div className="text-sm text-purple-300">USDC</div>
-              </div>
-              <div className="bg-gray-800/50 p-6 rounded-2xl text-center">
-                <div className="text-3xl font-bold text-green-400 mb-2">0</div>
-                <div className="text-sm text-green-300">Txs</div>
-              </div>
-              <div className="bg-gray-800/50 p-6 rounded-2xl text-center">
-                <div className="text-3xl font-bold text-blue-400 mb-2">Devnet</div>
-                <div className="text-sm text-blue-300">Network</div>
-              </div>
-            </div>
           </div>
 
           {/* === RIGHT: ACTION PANEL === */}
