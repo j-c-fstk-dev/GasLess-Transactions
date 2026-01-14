@@ -25,7 +25,7 @@ Uma aplicação web simples que demonstra os dois conceitos centrais do LazorKit
 
 ### 1️⃣ Clonar e instalar
 ```bash
-git clone <seu-repo>
+git clone https://github.com/j-c-fstk-dev/GasLess-Transactions
 cd lazorkit-bounty-demo
 npm install
 ```

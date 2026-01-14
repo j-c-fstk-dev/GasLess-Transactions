@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { LazorkitProvider, useWallet } from '@lazorkit/wallet';
+import { LazorkitProvider, useWallet } from './mocks/lazorKitMock';
 import WalletConnect from './components/WalletConnect';
 import TransactionForm from './components/TransactionForm';
 import './App.css';
