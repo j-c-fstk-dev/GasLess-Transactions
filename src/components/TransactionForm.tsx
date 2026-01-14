@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useWallet } from '@lazorkit/wallet';
+import { useWallet } from '../mocks/lazorKitMock';
 import { PublicKey, Transaction } from '@solana/web3.js';
 import { TOKEN_PROGRAM_ID, createTransferInstruction, getAssociatedTokenAddress } from '@solana/spl-token';
 import TransactionPreview from './TransactionPreview';

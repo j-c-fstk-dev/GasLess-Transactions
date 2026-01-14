@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useWallet } from '@lazorkit/wallet';
+import { useWallet } from '../mocks/lazorKitMock';
 
 interface WalletConnectProps {
   onSuccess?: () => void;
