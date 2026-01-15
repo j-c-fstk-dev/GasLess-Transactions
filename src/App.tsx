@@ -1,5 +1,5 @@
-// src/App.tsx - VERSÃO MOBILE CORRIGIDA
-import { useEffect, useState } from 'react';
+// src/App.tsx - FIX DEFINITIVO
+import { useEffect, useState, useRef } from 'react';
 import { LazorkitProvider, useWallet } from './mocks/lazorKitMock';
 import { BiometricAnimation, CreatingWalletAnimation, SuccessAnimation } from './components/BiometricAnimation';
 import { BalanceCard, QuickActions, TransactionList } from './components/DashboardComponents';
@@ -11,41 +11,47 @@ function AppContent() {
   const [isTransactionMode, setIsTransactionMode] = useState(false);
   const [showReceive, setShowReceive] = useState(false);
   const [onboardingStep, setOnboardingStep] = useState<'intro' | 'auth' | 'creating' | 'success' | 'dashboard'>('intro');
+  
+  // Flag para evitar múltiplas transições
+  const hasTransitioned = useRef(false);
 
-  // Sincroniza onboardingStep com isConnected
+  // Sincroniza APENAS com isConnected (SEM onboardingStep nas deps)
   useEffect(() => {
-    console.log('🟡 useEffect - isConnected:', isConnected, 'step:', onboardingStep);
+    console.log('🟡 useEffect - isConnected:', isConnected);
     
-    if (isConnected && onboardingStep === 'success') {
-      // Quando conectar E estiver na tela de sucesso, aguarda 1 segundo e vai pro dashboard
-      console.log('✅ Conectado na tela de sucesso! Indo para dashboard em 1s...');
-      const timer = setTimeout(() => {
+    if (isConnected && !hasTransitioned.current) {
+      // Conectou pela primeira vez, aguarda e vai pro dashboard
+      console.log('✅ Conectado! Aguardando transição...');
+      hasTransitioned.current = true;
+      
+      setTimeout(() => {
         setOnboardingStep('dashboard');
       }, 1000);
-      return () => clearTimeout(timer);
-    } else if (!isConnected && onboardingStep !== 'intro') {
-      // Se desconectou, volta para intro
-      console.log('❌ Desconectado! Voltando para intro...');
+    } else if (!isConnected) {
+      // Desconectou, reseta tudo
+      console.log('❌ Desconectado! Resetando...');
+      hasTransitioned.current = false;
       setOnboardingStep('intro');
       setIsTransactionMode(false);
+      setShowReceive(false);
     }
-  }, [isConnected, onboardingStep]);
+  }, [isConnected]); // ← SÓ escuta isConnected!
 
-  // Handler para iniciar o processo de criação da carteira
+  // Handler para iniciar criação da carteira
   const handleStartWalletCreation = async () => {
-    console.log('🔵 Iniciando criação da carteira...');
+    console.log('🔵 Iniciando fluxo de criação...');
     
-    // Passo 1: Animação de biometria
+    // Animação 1: Biometria
     setOnboardingStep('auth');
     await new Promise(resolve => setTimeout(resolve, 1500));
     
-    // Passo 2: Animação de criação (WebAuthn roda aqui)
+    // Animação 2: Criando (WebAuthn roda aqui)
     setOnboardingStep('creating');
     await new Promise(resolve => setTimeout(resolve, 2500));
     
-    // Passo 3: Animação de sucesso
+    // Animação 3: Sucesso
     setOnboardingStep('success');
-    // O useEffect acima vai detectar isConnected e ir pro dashboard
+    // O useEffect acima detectará isConnected=true e irá pro dashboard
   };
 
   return (
@@ -83,40 +89,36 @@ function AppContent() {
         </div>
       </header>
 
-      {/* === ANIMAÇÕES DE ONBOARDING (fullscreen overlays) === */}
+      {/* === ANIMAÇÕES (fullscreen overlays) === */}
       {onboardingStep === 'auth' && <BiometricAnimation />}
       {onboardingStep === 'creating' && <CreatingWalletAnimation />}
       {onboardingStep === 'success' && <SuccessAnimation />}
 
       {/* === MAIN CONTENT === */}
       <main className="relative z-10 max-w-7xl mx-auto px-4 md:px-6 py-6 md:py-12">
-        {onboardingStep === 'intro' && !isConnected && (
-          /* === ONBOARDING VIEW === */
+        {onboardingStep === 'intro' && (
+          /* === ONBOARDING === */
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-8 md:mb-12">
-              {/* Hero Icon */}
               <div className="w-24 h-24 md:w-32 md:h-32 bg-gradient-to-br from-purple-600/20 to-cyan-600/20 rounded-2xl md:rounded-3xl mx-auto mb-6 md:mb-8 flex items-center justify-center shadow-glow animate-pulse-slow glass">
                 <span className="text-5xl md:text-6xl">🔐</span>
               </div>
 
-              {/* Title */}
               <h1 className="text-4xl md:text-6xl font-bold gradient-text mb-4 md:mb-6">
                 Biometria Pura
               </h1>
 
-              {/* Description */}
               <p className="text-base md:text-xl text-purple-200 leading-relaxed max-w-2xl mx-auto mb-6 md:mb-8 px-4">
                 Autenticação nativa com digital ou FaceID. Sem seed phrases.
                 Transações USDC completamente gasless.
               </p>
 
-              {/* CTA Button */}
               <div className="px-4">
                 <WalletConnect onSuccess={handleStartWalletCreation} />
               </div>
             </div>
 
-            {/* Features Grid */}
+            {/* Features */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mt-8 md:mt-16 px-4">
               {[
                 { icon: '🔒', title: 'Biometria', desc: 'Autenticação nativa' },
@@ -136,7 +138,7 @@ function AppContent() {
         )}
 
         {onboardingStep === 'dashboard' && isConnected && wallet && (
-          /* === DASHBOARD VIEW === */
+          /* === DASHBOARD === */
           <div className="space-y-6 md:space-y-8">
             {/* Balance & Stats */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
@@ -171,9 +173,9 @@ function AppContent() {
               onReceive={() => setShowReceive(true)}
             />
 
-            {/* Transaction Form Modal */}
+            {/* Send Modal */}
             {isTransactionMode && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/90 backdrop-blur-sm p-4 md:p-6 animate-in fade-in duration-300">
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/90 backdrop-blur-sm p-4 md:p-6">
                 <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
                   <div className="card border-2 border-purple-500/30">
                     <div className="flex items-center justify-between mb-6 md:mb-8">
@@ -196,7 +198,7 @@ function AppContent() {
 
             {/* Receive Modal */}
             {showReceive && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/90 backdrop-blur-sm p-4 md:p-6 animate-in fade-in duration-300">
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/90 backdrop-blur-sm p-4 md:p-6">
                 <div className="w-full max-w-md">
                   <div className="card border-2 border-cyan-500/30">
                     <div className="flex items-center justify-between mb-6">
@@ -237,12 +239,9 @@ function AppContent() {
             )}
 
             {/* Transaction History */}
-            {wallet.transactions && wallet.transactions.length > 0 && (
+            {wallet.transactions && wallet.transactions.length > 0 ? (
               <TransactionList transactions={wallet.transactions} />
-            )}
-
-            {/* Empty State */}
-            {(!wallet.transactions || wallet.transactions.length === 0) && (
+            ) : (
               <div className="card text-center py-12 md:py-16">
                 <div className="w-20 h-20 md:w-24 md:h-24 bg-purple-600/20 rounded-2xl md:rounded-3xl mx-auto mb-4 md:mb-6 flex items-center justify-center">
                   <span className="text-4xl md:text-5xl">📊</span>
