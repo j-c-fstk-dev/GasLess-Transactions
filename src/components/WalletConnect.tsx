@@ -1,3 +1,4 @@
+// src/components/WalletConnect.tsx - SIMPLIFICADO
 import { useState } from 'react';
 import { useWallet } from '../mocks/lazorKitMock';
 
@@ -6,21 +7,16 @@ interface WalletConnectProps {
 }
 
 export default function WalletConnect({ onSuccess }: WalletConnectProps) {
-  const { connect, disconnect, isConnected, isConnecting } = useWallet();
+  const { disconnect, isConnected } = useWallet();
   const [error, setError] = useState<string | null>(null);
 
-  const handleConnect = async () => {
+  const handleConnect = () => {
+    console.log('🔵 WalletConnect: Botão clicado, chamando onSuccess()');
     setError(null);
-    try {
-      await connect({ feeMode: 'paymaster' });
-      onSuccess?.();
-    } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : 'Falha ao conectar. Tente novamente.'
-      );
-      console.error('Connection error:', err);
+    
+    // Apenas chama o callback - App.tsx cuida do resto
+    if (onSuccess) {
+      onSuccess();
     }
   };
 
@@ -33,14 +29,22 @@ export default function WalletConnect({ onSuccess }: WalletConnectProps) {
     }
   };
 
+  // Se já está conectado, mostra opção de desconectar
   if (isConnected) {
     return (
-      <div className="glass-hover rounded-3xl p-10 text-center animate-bounce-glow">
-        <div className="w-20 h-20 bg-gradient-to-r from-green-500/30 to-emerald-500/30 rounded-3xl mx-auto mb-8 flex items-center justify-center shadow-glow">
-          <span className="text-3xl">✅</span>
+      <div className="space-y-6">
+        <div className="card bg-gradient-to-br from-green-600/20 to-emerald-600/20 border-2 border-green-500/30 text-center">
+          <div className="w-24 h-24 bg-gradient-to-r from-green-500 to-emerald-500 rounded-3xl mx-auto mb-6 flex items-center justify-center shadow-glow-green animate-pulse">
+            <span className="text-5xl">✅</span>
+          </div>
+          <h2 className="text-3xl font-bold text-white mb-3">PassPay Ativo</h2>
+          <p className="text-green-100 text-lg mb-6">Autenticação biométrica confirmada</p>
+          <div className="badge-success mx-auto">
+            <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+            Carteira conectada
+          </div>
         </div>
-        <h2 className="text-2xl font-bold text-white mb-2">PassPay Ativo</h2>
-        <p className="text-green-100 text-lg mb-8">Autenticação biométrica confirmada</p>
+
         <button
           onClick={handleDisconnect}
           className="btn-secondary w-full"
@@ -51,64 +55,30 @@ export default function WalletConnect({ onSuccess }: WalletConnectProps) {
     );
   }
 
+  // Tela inicial - apenas o botão
   return (
     <div className="space-y-6">
-      <div className="bg-gray-800/50 rounded-3xl p-10 text-center">
-        <div className="w-24 h-24 bg-purple-600 rounded-3xl mx-auto mb-8 flex items-center justify-center">
-          <span className="text-4xl">🔐</span>
-        </div>
-        <h2 className="text-3xl font-bold text-white mb-4">
-          PassPay
-        </h2>
-        <p className="text-purple-100 text-lg leading-relaxed mb-8">
-          Crie sua carteira com biometria nativa. Sem seed phrase. 100% gasless.
-        </p>
+      {/* CTA Button */}
+      <button
+        onClick={handleConnect}
+        className="btn-primary w-full max-w-md mx-auto group"
+      >
+        <span className="mr-3 text-2xl group-hover:scale-125 inline-block transition-transform">👆</span>
+        Conectar com Digital/FaceID
+      </button>
 
-        <button
-          onClick={handleConnect}
-          disabled={isConnecting}
-          className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold py-4 px-8 rounded-2xl w-full max-w-md mx-auto hover:from-purple-700"
-        >
-          {isConnecting ? (
-            <>
-              <span className="inline-block animate-spin w-6 h-6 border-2 border-white/30 border-t-white rounded-full mr-3"></span>
-              Verificando biometria...
-            </>
-          ) : (
-            <>
-              <span className="mr-3">👆</span>
-              Conectar com Digital/FaceID
-            </>
-          )}
-        </button>
-      </div>
-
+      {/* Error message */}
       {error && (
-        <div className="bg-red-900/50 p-6 rounded-2xl border border-red-500">
-          <div className="text-red-300 text-sm text-center">{error}</div>
+        <div className="glass border-2 border-red-500/50 p-6 rounded-2xl animate-in fade-in duration-300">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">⚠️</span>
+            <div className="flex-1">
+              <p className="text-red-300 font-semibold mb-1">Erro na conexão</p>
+              <p className="text-red-200 text-sm">{error}</p>
+            </div>
+          </div>
         </div>
       )}
-
-      <div className="bg-gray-800/50 p-6 rounded-2xl">
-        <p className="font-semibold text-purple-200 text-sm mb-3 flex items-center justify-center">
-          <span className="w-5 h-5 bg-purple-500 rounded-lg flex items-center justify-center mr-2 text-xs">ℹ️</span>
-          Próximo passo
-        </p>
-        <ul className="text-purple-100 text-sm space-y-2">
-          <li className="flex items-center">
-            <span className="w-2 h-2 bg-green-400 rounded-full mr-3"></span>
-            Confirmação biométrica (digital/PIN/FaceID)
-          </li>
-          <li className="flex items-center">
-            <span className="w-2 h-2 bg-green-400 rounded-full mr-3"></span>
-            Smart wallet criada automaticamente
-          </li>
-          <li className="flex items-center">
-            <span className="w-2 h-2 bg-green-400 rounded-full mr-3"></span>
-            Pronto para USDC gasless
-          </li>
-        </ul>
-      </div>
     </div>
   );
 }

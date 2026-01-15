@@ -1,5 +1,5 @@
-// src/App.tsx - FIX DEFINITIVO
-import { useEffect, useState, useRef } from 'react';
+// src/App.tsx - SINCRONIZAÇÃO CORRIGIDA
+import { useEffect, useState } from 'react';
 import { LazorkitProvider, useWallet } from './mocks/lazorKitMock';
 import { BiometricAnimation, CreatingWalletAnimation, SuccessAnimation } from './components/BiometricAnimation';
 import { BalanceCard, QuickActions, TransactionList } from './components/DashboardComponents';
@@ -7,51 +7,57 @@ import WalletConnect from './components/WalletConnect';
 import TransactionForm from './components/TransactionForm';
 
 function AppContent() {
-  const { isConnected, wallet } = useWallet();
+  const { isConnected, wallet, connect } = useWallet();
   const [isTransactionMode, setIsTransactionMode] = useState(false);
   const [showReceive, setShowReceive] = useState(false);
   const [onboardingStep, setOnboardingStep] = useState<'intro' | 'auth' | 'creating' | 'success' | 'dashboard'>('intro');
-  
-  // Flag para evitar múltiplas transições
-  const hasTransitioned = useRef(false);
 
-  // Sincroniza APENAS com isConnected (SEM onboardingStep nas deps)
+  // Quando conectar, vai pro dashboard
   useEffect(() => {
-    console.log('🟡 useEffect - isConnected:', isConnected);
+    console.log('🟡 isConnected mudou:', isConnected);
     
-    if (isConnected && !hasTransitioned.current) {
-      // Conectou pela primeira vez, aguarda e vai pro dashboard
-      console.log('✅ Conectado! Aguardando transição...');
-      hasTransitioned.current = true;
-      
-      setTimeout(() => {
-        setOnboardingStep('dashboard');
-      }, 1000);
-    } else if (!isConnected) {
-      // Desconectou, reseta tudo
-      console.log('❌ Desconectado! Resetando...');
-      hasTransitioned.current = false;
+    if (isConnected) {
+      console.log('✅ Conectado! Indo para dashboard...');
+      setOnboardingStep('dashboard');
+    } else if (!isConnected && onboardingStep === 'dashboard') {
+      console.log('❌ Desconectado! Voltando para intro...');
       setOnboardingStep('intro');
       setIsTransactionMode(false);
       setShowReceive(false);
     }
-  }, [isConnected]); // ← SÓ escuta isConnected!
+  }, [isConnected]);
 
-  // Handler para iniciar criação da carteira
+  // Handler COMPLETO que chama o WebAuthn na hora certa
   const handleStartWalletCreation = async () => {
-    console.log('🔵 Iniciando fluxo de criação...');
+    console.log('🔵 === INÍCIO DO FLUXO ===');
     
-    // Animação 1: Biometria
-    setOnboardingStep('auth');
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    // Animação 2: Criando (WebAuthn roda aqui)
-    setOnboardingStep('creating');
-    await new Promise(resolve => setTimeout(resolve, 2500));
-    
-    // Animação 3: Sucesso
-    setOnboardingStep('success');
-    // O useEffect acima detectará isConnected=true e irá pro dashboard
+    try {
+      // Passo 1: Animação de biometria
+      console.log('🔵 Step 1: Mostrando animação de biometria');
+      setOnboardingStep('auth');
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // Passo 2: Animação de criação + CHAMA WEBAUTHN AQUI
+      console.log('🔵 Step 2: Criando carteira (WebAuthn vai abrir agora)');
+      setOnboardingStep('creating');
+      
+      // IMPORTANTE: Chama connect() DURANTE a animação de criação
+      const walletResult = await connect({ feeMode: 'paymaster' });
+      console.log('✅ Carteira criada:', walletResult);
+      
+      // Passo 3: Animação de sucesso
+      console.log('🔵 Step 3: Mostrando sucesso');
+      setOnboardingStep('success');
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Passo 4: useEffect detecta isConnected=true e vai pro dashboard
+      console.log('🔵 Step 4: useEffect vai detectar isConnected e ir pro dashboard');
+      
+    } catch (error) {
+      console.error('🔴 Erro no fluxo:', error);
+      setOnboardingStep('intro');
+      alert('Erro ao criar carteira. Tente novamente.');
+    }
   };
 
   return (
