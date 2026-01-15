@@ -12,14 +12,11 @@ function AppContent() {
   const [showReceive, setShowReceive] = useState(false);
   const [onboardingStep, setOnboardingStep] = useState<'intro' | 'auth' | 'creating' | 'success' | 'dashboard'>('intro');
 
-  // Quando conectar, vai pro dashboard
+  // Só lida com desconexão - transição para dashboard é manual após animação
   useEffect(() => {
     console.log('🟡 isConnected mudou:', isConnected);
-    
-    if (isConnected) {
-      console.log('✅ Conectado! Indo para dashboard...');
-      setOnboardingStep('dashboard');
-    } else if (!isConnected && onboardingStep === 'dashboard') {
+
+    if (!isConnected && onboardingStep === 'dashboard') {
       console.log('❌ Desconectado! Voltando para intro...');
       setOnboardingStep('intro');
       setIsTransactionMode(false);
@@ -65,8 +62,9 @@ function AppContent() {
       setOnboardingStep('success');
       await new Promise(resolve => setTimeout(resolve, 2000));
 
-      // Passo 4: useEffect detecta isConnected=true e vai pro dashboard
-      console.log('🔵 Step 4: useEffect vai detectar isConnected e ir pro dashboard');
+      // Passo 4: Agora vai pro dashboard MANUALMENTE após a animação
+      console.log('🔵 Step 4: Indo para dashboard após animação de sucesso');
+      setOnboardingStep('dashboard');
 
     } catch (error) {
       console.error('🔴 Erro no fluxo:', error);
